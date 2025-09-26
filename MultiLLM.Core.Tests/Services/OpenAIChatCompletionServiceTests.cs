@@ -1,3 +1,5 @@
+#pragma warning disable xUnit1031
+
 using System.Net;
 using System.Text.Json;
 using FluentAssertions;
@@ -210,7 +212,8 @@ public class OpenAIChatCompletionServiceTests : IDisposable
             .When("https://api.openai.com/v1/chat/completions")
             .With(message =>
             {
-                capturedRequestBody = message.Content?.ReadAsStringAsync().GetAwaiter().GetResult();
+                // Using .Result here is acceptable in test setup for mock handlers
+                capturedRequestBody = message.Content?.ReadAsStringAsync().Result;
                 return true;
             })
             .Respond("application/json", JsonSerializer.Serialize(expectedResponse));
@@ -329,7 +332,8 @@ public class OpenAIChatCompletionServiceTests : IDisposable
             .When("https://api.openai.com/v1/chat/completions")
             .With(message =>
             {
-                capturedRequestBody = message.Content?.ReadAsStringAsync().GetAwaiter().GetResult();
+                // Using .Result here is acceptable in test setup for mock handlers
+                capturedRequestBody = message.Content?.ReadAsStringAsync().Result;
                 return true;
             })
             .Respond("application/json", JsonSerializer.Serialize(expectedResponse));

@@ -142,41 +142,19 @@ def run_tests():
 
 
 def run_application(project_name=None):
-    """Run the application"""
-    print("Running application...")
+    """Run the application by calling run.py"""
+    print("Running application via run.py...")
 
-    # Determine which project to run
-    runnable_projects = {
-        "demo": "MultiLLM.Demo/MultiLLM.Demo.csproj",
-        "app": "MultipleAIApp/MultipleAIApp/MultipleAIApp.csproj"
-    }
+    # Build the command to call run.py
+    cmd = [sys.executable, "run.py"]
 
-    if project_name and project_name in runnable_projects:
-        project_to_run = runnable_projects[project_name]
-    else:
-        # Default to demo if available, otherwise app
-        if os.path.exists(runnable_projects["demo"]):
-            project_to_run = runnable_projects["demo"]
-            project_name = "demo"
-        elif os.path.exists(runnable_projects["app"]):
-            project_to_run = runnable_projects["app"]
-            project_name = "app"
-        else:
-            print("No runnable projects found!")
-            return False
+    # Add project name if specified
+    if project_name:
+        cmd.append(project_name)
 
-    if os.path.exists(project_to_run):
-        print(f"Running {project_name}: {project_to_run}")
-        result = run_command([
-            "dotnet", "run",
-            "--project", project_to_run,
-            "--no-build"
-        ], check=False)
-
-        return result.returncode == 0
-    else:
-        print(f"Project {project_to_run} not found!")
-        return False
+    # Call run.py
+    result = run_command(cmd, check=False)
+    return result.returncode == 0
 
 
 def main():

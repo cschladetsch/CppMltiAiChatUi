@@ -1,0 +1,89 @@
+{
+  "summary": {
+    "systemPrompt": "You synthesize the key takeaways from multiple assistant transcripts. Output concise bullets."
+  },
+  "models": [
+    {
+      "name": "Meta-Llama 3 8B Instruct",
+      "provider": "huggingface",
+      "modelId": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "description": "Meta's compact instruction-tuned Llama 3 model hosted on Hugging Face Inference API.",
+      "parameters": [
+        {
+          "name": "temperature",
+          "default": 0.6,
+          "description": "Controls response randomness."
+        },
+        {
+          "name": "max_new_tokens",
+          "default": 512,
+          "description": "Maximum number of tokens to generate."
+        },
+        {
+          "name": "top_p",
+          "default": 0.9,
+          "description": "Top-p nucleus sampling threshold."
+        }
+      ]
+    },
+    {
+      "name": "Mistral 7B Instruct",
+      "provider": "huggingface",
+      "modelId": "mistralai/Mistral-7B-Instruct-v0.3",
+      "description": "Mistral's 7B instruction model suitable for lightweight reasoning workloads.",
+      "parameters": [
+        {
+          "name": "temperature",
+          "default": 0.7,
+          "description": "Higher values produce more creative answers."
+        },
+        {
+          "name": "max_new_tokens",
+          "default": 400,
+          "description": "Maximum number of tokens to generate."
+        },
+        {
+          "name": "top_k",
+          "default": 50,
+          "description": "Limits candidate tokens to the top-k most likely."
+        }
+      ]
+    },
+    {
+      "name": "GPT-3.5 Turbo",
+      "provider": "openai",
+      "modelId": "gpt-3.5-turbo",
+      "description": "OpenAI's GPT-3.5 Turbo model for chat completions.",
+      "parameters": [
+        {
+          "name": "temperature",
+          "default": 0.7,
+          "description": "Controls response randomness."
+        },
+        {
+          "name": "max_tokens",
+          "default": 1000,
+          "description": "Maximum number of tokens to generate."
+        }
+      ]
+    },
+    {
+      "name": "Claude Haiku",
+      "provider": "anthropic",
+      "modelId": "claude-3-haiku-20240307",
+      "description": "Anthropic's Claude Haiku model for fast conversations.",
+      "parameters": [
+        {
+          "name": "temperature",
+          "default": 0.7,
+          "description": "Controls response randomness."
+        },
+        {
+          "name": "max_tokens",
+          "default": 1000,
+          "description": "Maximum number of tokens to generate."
+        }
+      ]
+    }
+  ]
+}

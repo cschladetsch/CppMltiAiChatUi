@@ -1,0 +1,187 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using MultipleAIApp.Services;
+
+namespace MultipleAIApp.ViewModels;
+
+public sealed partial class MainViewModel : ObservableObject
+{
+    private readonly IModelCatalog _catalog;
+    private readonly Func<ModelDefinition, ChatSessionViewModel> _sessionFactory;
+    private readonly ILogger<MainViewModel> _logger;
+
+    private ModelDefinition? selectedModel;
+    private ChatSessionViewModel? selectedSession;
+    private string apiKey = string.Empty;
+    private string userInput = string.Empty;
+    private string summaryText = "Press Ctrl+R to refresh the cross-model summary.";
+    private string statusMessage = string.Empty;
+    private bool isBusy;
+
+    public MainViewModel(IModelCatalog catalog, Func<ModelDefinition, ChatSessionViewModel> sessionFactory, ILogger<MainViewModel> logger)
+    {
+        _catalog = catalog;
+        _sessionFactory = sessionFactory;
+        _logger = logger;
+
+        Models = new ObservableCollection<ModelDefinition>(_catalog.Models);
+        Sessions = new ObservableCollection<ChatSessionViewModel>(Models.Select(_sessionFactory));
+
+        SelectedModel = Models.FirstOrDefault();
+        SelectedSession = Sessions.FirstOrDefault();
+
+        SendCommand = new AsyncRelayCommand(BroadcastAsync, CanBroadcast);
+        RefreshSummaryCommand = new AsyncRelayCommand(RefreshSummariesAsync, CanRefreshSummary);
+    }
+
+    public ObservableCollection<ModelDefinition> Models { get; }
+
+    public ObservableCollection<ChatSessionViewModel> Sessions { get; }
+
+    public IReadOnlyList<ModelParameterDefinition>? SelectedModelParameters => SelectedModel?.Parameters;
+
+    public ModelDefinition? SelectedModel
+    {
+        get => selectedModel;
+        set
+        {
+            if (SetProperty(ref selectedModel, value))
+            {
+                OnSelectedModelChanged(value);
+            }
+        }
+    }
+
+    public ChatSessionViewModel? SelectedSession
+    {
+        get => selectedSession;
+        set => SetProperty(ref selectedSession, value);
+    }
+
+    public string ApiKey
+    {
+        get => apiKey;
+        set
+        {
+            if (SetProperty(ref apiKey, value))
+            {
+                SendCommand?.NotifyCanExecuteChanged();
+                RefreshSummaryCommand?.NotifyCanExecuteChanged();
+            }
+        }
+    }
+
+    public string UserInput
+    {
+        get => userInput;
+        set
+        {
+            if (SetProperty(ref userInput, value))
+            {
+                SendCommand?.NotifyCanExecuteChanged();
+            }
+        }
+    }
+
+    public string SummaryText
+    {
+        get => summaryText;
+        set => SetProperty(ref summaryText, value);
+    }
+
+    public string StatusMessage
+    {
+        get => statusMessage;
+        set => SetProperty(ref statusMessage, value);
+    }
+
+    public bool IsBusy
+    {
+        get => isBusy;
+        set
+        {
+            if (SetProperty(ref isBusy, value))
+            {
+                SendCommand?.NotifyCanExecuteChanged();
+                RefreshSummaryCommand?.NotifyCanExecuteChanged();
+            }
+        }
+    }
+
+    public IAsyncRelayCommand SendCommand { get; }
+
+    public IAsyncRelayCommand RefreshSummaryCommand { get; }
+
+    private bool CanBroadcast() => !IsBusy && !string.IsNullOrWhiteSpace(ApiKey) && !string.IsNullOrWhiteSpace(UserInput);
+
+    private bool CanRefreshSummary() => !IsBusy && !string.IsNullOrWhiteSpace(ApiKey) && Sessions.Count > 0;
+
+    private async Task BroadcastAsync()
+    {
+        var message = UserInput.Trim();
+        if (string.IsNullOrEmpty(message))
+        {
+            return;
+        }
+
+        try
+        {
+            IsBusy = true;
+            StatusMessage = "Sending message to all sessions...";
+            var tasks = Sessions.Select(session => session.SendAsync(message, ApiKey));
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+            UserInput = string.Empty;
+            StatusMessage = $"Sent to {Sessions.Count} sessions.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Warning: {ex.Message}";
+            _logger.LogError(ex, "Broadcast failed");
+        }
+        finally
+        {
+            IsBusy = false;
+            SendCommand.NotifyCanExecuteChanged();
+            RefreshSummaryCommand.NotifyCanExecuteChanged();
+        }
+    }
+
+    private async Task RefreshSummariesAsync()
+    {
+        if (Sessions.Count == 0)
+        {
+            SummaryText = "No sessions to summarize.";
+            return;
+        }
+
+        try
+        {
+            IsBusy = true;
+            StatusMessage = "Generating summaries...";
+            var prompt = _catalog.Summary.SystemPrompt;
+            var tasks = Sessions.Select(session => session.SummarizeAsync(ApiKey, prompt));
+            var summaries = await Task.WhenAll(tasks).ConfigureAwait(false);
+            SummaryText = string.Join(Environment.NewLine + Environment.NewLine, summaries);
+            StatusMessage = "Summary updated.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Warning: {ex.Message}";
+            _logger.LogError(ex, "Failed to refresh summaries");
+        }
+        finally
+        {
+            IsBusy = false;
+            SendCommand.NotifyCanExecuteChanged();
+            RefreshSummaryCommand.NotifyCanExecuteChanged();
+        }
+    }
+
+    private void OnSelectedModelChanged(ModelDefinition? value) => OnPropertyChanged(nameof(SelectedModelParameters));
+}
+
+
+
+

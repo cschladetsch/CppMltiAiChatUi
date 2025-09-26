@@ -1,0 +1,218 @@
+<Page
+    x:Class="MultipleAIApp.MainPage"
+    x:Name="root"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    xmlns:models="using:MultipleAIApp.Models"
+    xmlns:vm="using:MultipleAIApp.ViewModels"
+    xmlns:conv="using:MultipleAIApp.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <conv:ChatRoleToBrushConverter x:Key="RoleToBrushConverter" />
+
+        <Style x:Key="ChatBubbleStyle" TargetType="Border">
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="Margin" Value="0,4" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="BorderBrush" Value="{ThemeResource SystemAccentColor}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+    </Page.Resources>
+
+    <Grid ColumnSpacing="16" Padding="16" RowSpacing="16">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="320" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="16">
+                <TextBlock Text="API key" Style="{ThemeResource SubtitleTextBlockStyle}" />
+                <TextBox
+                    PlaceholderText="hf_xxx"
+                    Text="{Binding ApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock Text="Models" Style="{ThemeResource SubtitleTextBlockStyle}" />
+                <ListView
+                    ItemsSource="{Binding Models}"
+                    SelectedItem="{Binding SelectedModel, Mode=TwoWay}"
+                    IsItemClickEnabled="False"
+                    SelectionMode="Single">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="models:ModelDefinition">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                <TextBlock Text="{x:Bind Description}" TextWrapping="Wrap" Opacity="0.8" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Parameters" Style="{ThemeResource SubtitleTextBlockStyle}" />
+                    <ItemsControl ItemsSource="{Binding SelectedModelParameters}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:ModelParameterDefinition">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" />
+                                    <TextBlock Text="Default: {x:Bind DefaultDisplay}" FontStyle="Italic" />
+                                    <TextBlock Text="{x:Bind Description}" TextWrapping="Wrap" Opacity="0.8" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <StackPanel Spacing="8">
+                    <Button Content="Connection Status" Command="{Binding ToggleConnectionPanelCommand}" />
+                    <Border Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+                            BorderBrush="{ThemeResource SystemAccentColor}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Padding="8"
+                            Visibility="{Binding ShowConnectionPanel, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Connection Status" FontWeight="SemiBold" />
+                            <ItemsControl ItemsSource="{Binding ConnectionStatusViewModel.ConnectionStatuses}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:ConnectionStatusItem">
+                                        <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                                CornerRadius="2"
+                                                Padding="6"
+                                                Margin="0,2">
+                                            <StackPanel>
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <TextBlock Text="{x:Bind DisplayName}" FontWeight="SemiBold" />
+                                                    <TextBlock Text="{x:Bind Status}" Foreground="{x:Bind StatusColor}" />
+                                                    <Button Content="Test"
+                                                            Command="{Binding DataContext.ConnectionStatusViewModel.TestConnectionCommand, ElementName=root}"
+                                                            CommandParameter="{x:Bind Provider}"
+                                                            FontSize="10"
+                                                            Padding="4,2" />
+                                                </StackPanel>
+                                                <TextBlock Text="{x:Bind Message}"
+                                                           TextWrapping="Wrap"
+                                                           FontSize="10"
+                                                           Opacity="0.8" />
+                                                <TextBlock Text="{x:Bind LastUpdatedDisplay}"
+                                                           FontSize="9"
+                                                           Opacity="0.6" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Grid Grid.Column="1" RowSpacing="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="200" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <muxc:TabView
+                Grid.Row="0"
+                TabItemsSource="{Binding Sessions}"
+                SelectedItem="{Binding SelectedSession, Mode=TwoWay}"
+                IsAddTabButtonVisible="False">
+                <muxc:TabView.TabItemTemplate>
+                    <DataTemplate x:DataType="vm:ChatSessionViewModel">
+                        <muxc:TabViewItem Header="{x:Bind DisplayName}" IsClosable="False">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{x:Bind Messages}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:ChatMessageViewModel">
+                                            <Border
+                                                Style="{StaticResource ChatBubbleStyle}"
+                                                Background="{x:Bind Role, Converter={StaticResource RoleToBrushConverter}}">
+                                                <StackPanel Spacing="4">
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="{x:Bind Role}" FontWeight="SemiBold" />
+                                                        <TextBlock Text="{x:Bind TimestampDisplay}" FontSize="10" Opacity="0.7" />
+                                                        <TextBlock Text="{x:Bind MessageId}" FontSize="8" Opacity="0.5" />
+                                                        <Button Content="Debug"
+                                                                Command="{x:Bind ToggleDebugCommand}"
+                                                                FontSize="8"
+                                                                Padding="2,1"
+                                                                Background="Transparent" />
+                                                    </StackPanel>
+                                                    <TextBlock Text="{x:Bind Content}" TextWrapping="Wrap" />
+                                                    <Border Background="{ThemeResource LayerFillColorAltBrush}"
+                                                            CornerRadius="2"
+                                                            Padding="4"
+                                                            Visibility="{x:Bind ShowDebugInfo, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                        <TextBlock Text="{x:Bind DebugInfo}"
+                                                                   FontFamily="Consolas"
+                                                                   FontSize="9"
+                                                                   TextWrapping="Wrap" />
+                                                    </Border>
+                                                    <ProgressRing
+                                                        IsActive="{x:Bind IsStreaming}"
+                                                        Visibility="{x:Bind IsStreaming, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                        Width="20"
+                                                        Height="20" />
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </muxc:TabViewItem>
+                    </DataTemplate>
+                </muxc:TabView.TabItemTemplate>
+            </muxc:TabView>
+
+            <StackPanel Grid.Row="1" Spacing="8">
+                <TextBlock Text="Summary" Style="{ThemeResource SubtitleTextBlockStyle}" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Content="Refresh summary" Command="{Binding RefreshSummaryCommand}" />
+                    <Button Content="Re-initialize Connections"
+                            Command="{Binding InitializeConnectionsCommand}"
+                            FontSize="10"
+                            Opacity="0.7"
+                            ToolTipService.ToolTip="Manually re-initialize all connections (auto-initializes on startup)" />
+                </StackPanel>
+                <TextBox
+                    Text="{Binding SummaryText, Mode=TwoWay}"
+                    IsReadOnly="True"
+                    AcceptsReturn="True"
+                    TextWrapping="Wrap"
+                    Height="160" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Spacing="8">
+                <TextBlock Text="Status" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" />
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox
+                        Grid.Column="0"
+                        AcceptsReturn="True"
+                        PlaceholderText="Ask something for every model"
+                        Text="{Binding UserInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        TextWrapping="Wrap"
+                        MinHeight="80" />
+                    <Button
+                        Grid.Column="1"
+                        Content="Send"
+                        Command="{Binding SendCommand}"
+                        VerticalAlignment="Stretch"
+                        Padding="16,8" />
+                </Grid>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Page>

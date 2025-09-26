@@ -1,0 +1,128 @@
+{
+  "apiKeys": {
+    "huggingFace": "YOUR_HUGGINGFACE_API_KEY_HERE",
+    "openAi": "YOUR_OPENAI_API_KEY_HERE",
+    "anthropic": "YOUR_ANTHROPIC_API_KEY_HERE",
+    "google": "YOUR_GOOGLE_API_KEY_HERE",
+    "grok": "YOUR_GROK_API_KEY_HERE",
+    "azure": {
+      "endpoint": "https://YOUR_RESOURCE.openai.azure.com/",
+      "apiKey": "YOUR_AZURE_API_KEY_HERE"
+    }
+  },
+  "defaultSettings": {
+    "defaultProvider": "huggingface",
+    "maxTokens": 512,
+    "temperature": 0.7,
+    "timeout": 30000,
+    "retryAttempts": 3,
+    "retryDelay": 1000
+  },
+  "logging": {
+    "level": "Information",
+    "enableFileLogging": false,
+    "logFilePath": "logs/multipleai.log"
+  },
+  "ui": {
+    "theme": "light",
+    "maxChatHistory": 100,
+    "autoSaveInterval": 60000
+  },
+  "connection": {
+    "enableHandshake": true,
+    "handshakeTimeout": 10000,
+    "autoHandshakeOnStartup": true,
+    "showConnectionStatus": true,
+    "handshakeRetryAttempts": 3,
+    "handshakeRetryDelay": 2000
+  },
+  "models": {
+    "summary": {
+      "systemPrompt": "You synthesize the key takeaways from multiple assistant transcripts. Output concise bullets."
+    },
+    "availableModels": [
+      {
+        "name": "Meta-Llama 3 8B Instruct",
+        "provider": "huggingface",
+        "modelId": "meta-llama/Meta-Llama-3-8B-Instruct",
+        "description": "Meta's compact instruction-tuned Llama 3 model hosted on Hugging Face Inference API.",
+        "parameters": [
+          {
+            "name": "temperature",
+            "default": 0.6,
+            "description": "Controls response randomness."
+          },
+          {
+            "name": "max_new_tokens",
+            "default": 512,
+            "description": "Maximum number of tokens to generate."
+          },
+          {
+            "name": "top_p",
+            "default": 0.9,
+            "description": "Top-p nucleus sampling threshold."
+          }
+        ]
+      },
+      {
+        "name": "Mistral 7B Instruct",
+        "provider": "huggingface",
+        "modelId": "mistralai/Mistral-7B-Instruct-v0.3",
+        "description": "Mistral's 7B instruction model suitable for lightweight reasoning workloads.",
+        "parameters": [
+          {
+            "name": "temperature",
+            "default": 0.7,
+            "description": "Higher values produce more creative answers."
+          },
+          {
+            "name": "max_new_tokens",
+            "default": 400,
+            "description": "Maximum number of tokens to generate."
+          },
+          {
+            "name": "top_k",
+            "default": 50,
+            "description": "Limits candidate tokens to the top-k most likely."
+          }
+        ]
+      },
+      {
+        "name": "GPT-4",
+        "provider": "openai",
+        "modelId": "gpt-4",
+        "description": "OpenAI's most capable model for complex reasoning.",
+        "parameters": [
+          {
+            "name": "temperature",
+            "default": 0.7,
+            "description": "Controls randomness in responses."
+          },
+          {
+            "name": "max_tokens",
+            "default": 1000,
+            "description": "Maximum tokens to generate."
+          }
+        ]
+      },
+      {
+        "name": "Claude 3",
+        "provider": "anthropic",
+        "modelId": "claude-3-opus-20240229",
+        "description": "Anthropic's Claude 3 model for sophisticated analysis.",
+        "parameters": [
+          {
+            "name": "temperature",
+            "default": 0.7,
+            "description": "Response creativity control."
+          },
+          {
+            "name": "max_tokens",
+            "default": 1000,
+            "description": "Maximum output length."
+          }
+        ]
+      }
+    ]
+  }
+}

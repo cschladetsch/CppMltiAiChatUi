@@ -36,6 +36,14 @@
     "handshakeRetryAttempts": 3,
     "handshakeRetryDelay": 2000
   },
+  "generation": {
+    "pages": 200,
+    "loops": 10,
+    "deathFrequency": 50,
+    "enableGeneration": true,
+    "outputDirectory": "generated",
+    "colorOutput": true
+  },
   "models": {
     "summary": {
       "systemPrompt": "You synthesize the key takeaways from multiple assistant transcripts. Output concise bullets."

@@ -35,7 +35,15 @@ class Program
         }
 
         Console.WriteLine("\nPress any key to exit...");
-        Console.ReadKey();
+        try
+        {
+            Console.ReadKey();
+        }
+        catch (InvalidOperationException)
+        {
+            // Console input is redirected, can't read keys
+            Console.WriteLine("Console input redirected - exiting...");
+        }
     }
 
     static void ConfigureServices(IServiceCollection services)

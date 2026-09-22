@@ -1,5 +1,8 @@
 # MultiLLM.Core
 
+📖 [Docs & diagrams](https://cschladetsch.github.io/CppMltiAiChatUi/)
+
+
 A reusable .NET library for multi-provider Large Language Model (LLM) chat completions supporting OpenAI, Anthropic, HuggingFace, Google, Grok, and Azure.
 
 ## 🏗️ Architecture Overview

@@ -1,0 +1,4 @@
+title: MultiLLM.Core
+description: A reusable .NET library for multi-provider Large Language Model chat completions, supporting OpenAI, Anthropic, HuggingFace, Google, Grok, and Azure behind a single interface.
+theme: null
+markdown: kramdown
